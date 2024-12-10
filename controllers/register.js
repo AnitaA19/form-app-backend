@@ -1,9 +1,10 @@
-const express = require('express');
-const connection = require('../config/config'); 
-const router = express.Router();
+\const express = require('express');
 const crypto = require('crypto');
+const connection = require('../config/config');
 
-router.post('/register', async (req, res) => {
+const router = express.Router();
+
+router.post('/', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -13,6 +14,7 @@ router.post('/register', async (req, res) => {
     try {
         const salt = crypto.randomBytes(16).toString('hex');
         const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex');
+
         const [rows] = await connection.execute('SELECT * FROM authUser WHERE email = ?', [email]);
 
         if (rows.length > 0) {

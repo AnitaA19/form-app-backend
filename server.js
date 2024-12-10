@@ -9,15 +9,19 @@ const routes = require('./routes/authRoutes');
 const app = express();
 
 app.use(cors());  
-app.use(express.json());  
-app.use(parseJson);  
-app.use(logger); 
+app.use(express.json());   
+app.use(parseJson);        
+app.use(logger);       
 
 app.get('/', (req, res) => {
     res.send('Welcome to the API server!');
 });
 
 app.use('/api', routes);
+
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+});
 
 const PORT = process.env.PORT || 3000;
 
