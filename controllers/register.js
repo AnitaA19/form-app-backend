@@ -1,7 +1,7 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
 const connection = require('../config/config'); 
 const router = express.Router();
+const crypto = require('crypto');
 
 router.post('/register', async (req, res) => {
     const { email, password } = req.body;
@@ -11,7 +11,8 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const salt = crypto.randomBytes(16).toString('hex');
+        const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex');
 
         const [rows] = await connection.execute('SELECT * FROM authUser WHERE email = ?', [email]);
 
