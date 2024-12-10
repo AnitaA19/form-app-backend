@@ -1,6 +1,6 @@
 // app.js
 const express = require('express');
-const routes = require('./routes'); // Подключение общего роутера
+const routes = require('./authRoutes');
 const logger = require('./middleware/logger');
 const parseJson = require('./middleware/parseJson');
 
