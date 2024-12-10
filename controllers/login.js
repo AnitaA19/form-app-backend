@@ -1,9 +1,9 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
-const connection = require('../config/config'); 
+const crypto = require('crypto');
+const connection = require('../config/config');
 const router = express.Router();
 
-router.post('/api/login', (req, res) => {
+router.post('/login', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -22,19 +22,20 @@ router.post('/api/login', (req, res) => {
     }
 
     const user = results[0];
+    const { password: storedHash, salt } = user; 
 
-    bcrypt.compare(password, user.password, (err, isMatch) => {
-      if (err) {
-        console.error('Error comparing passwords', err);
-        return res.status(500).json({ message: 'Server error' });
-      }
+    try {
+      const hashedPassword = crypto.scryptSync(password, salt, 64).toString('hex');
 
-      if (isMatch) {
+      if (hashedPassword === storedHash) {
         return res.status(200).json({ message: 'Login successful' });
       } else {
         return res.status(401).json({ message: 'Invalid email or password' });
       }
-    });
+    } catch (err) {
+      console.error('Error during password verification', err);
+      return res.status(500).json({ message: 'Server error' });
+    }
   });
 });
 
