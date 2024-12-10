@@ -9,18 +9,17 @@ const registerUser = async (req, res) => {
         const [existingUser] = await db.promise().query(checkQuery, [email]);
 
         if (existingUser.length > 0) {
-            return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
+            return res.status(400).json({ message: 'Пользователь уже существует' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-
         const query = 'INSERT INTO authUsers (email, password) VALUES (?, ?)';
         await db.promise().query(query, [email, hashedPassword]);
 
-        res.status(201).json({ message: 'Пользователь зарегистрирован успешно' });
+        res.status(201).json({ message: 'Пользователь зарегистрирован' });
     } catch (err) {
-        console.error('Ошибка при регистрации:', err);
-        res.status(500).json({ message: 'Ошибка при регистрации' });
+        console.error('Ошибка регистрации:', err);
+        res.status(500).json({ message: 'Ошибка регистрации', error: err.message });
     }
 };
 
@@ -36,15 +35,14 @@ const loginUser = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user[0].password);
-
         if (!isMatch) {
             return res.status(401).json({ message: 'Неверный пароль' });
         }
 
-        res.status(200).json({ message: 'Вход успешен' });
+        res.status(200).json({ message: 'Вход выполнен' });
     } catch (err) {
-        console.error('Ошибка при входе:', err);
-        res.status(500).json({ message: 'Ошибка при входе' });
+        console.error('Ошибка входа:', err);
+        res.status(500).json({ message: 'Ошибка входа', error: err.message });
     }
 };
 
