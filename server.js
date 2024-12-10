@@ -1,6 +1,6 @@
 // app.js
 const express = require('express');
-const routes = require('./authRoutes');
+const routes = require('./routes/authRoutes');
 const logger = require('./middleware/logger');
 const parseJson = require('./middleware/parseJson');
 
