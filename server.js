@@ -1,24 +1,19 @@
-// app.js
+require('dotenv').config(); 
+
 const express = require('express');
-const routes = require('./routes/authRoutes');
-const logger = require('./middleware/logger');
+const logger = require('./middleware/logger'); 
 const parseJson = require('./middleware/parseJson');
+const routes = require('./routes/authRoutes');
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
-app.use(parseJson);
+app.use(express.json());
+app.use(parseJson); 
 app.use(logger);
 
-app.use('/', routes);
+app.use('/api', routes);
 
-app.post('/data', (req, res) => {
-    res.json({
-        message: 'Data received!',
-        receivedData: req.body,
-    });
-});
+const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
