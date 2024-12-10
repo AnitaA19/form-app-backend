@@ -8,7 +8,8 @@ const db = require('./config/config');
 
 const app = express();
 console.log(process.env.MYSQL_URL);  
-const port = process.env.PORT || 3001;  
+const port = process.env.PORT || 8080;
+
 
 app.use(cors());
 app.use(bodyParser.json());
