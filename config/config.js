@@ -1,7 +1,12 @@
 const mysql = require('mysql2');
-require('dotenv').config(); 
+require('dotenv').config({ path: '../.env' });  
 
 const mysqlUrl = process.env.MYSQL_URL;
+
+if (!mysqlUrl) {
+  console.error('MYSQL_URL is not defined in the environment variables');
+  process.exit(1);  
+}
 
 const url = new URL(mysqlUrl);
 
@@ -21,4 +26,4 @@ connection.connect(err => {
   console.log('Connected to the database');
 });
 
-connection.end();
+module.exports = connection;
