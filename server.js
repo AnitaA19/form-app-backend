@@ -1,15 +1,13 @@
-require('dotenv').config(); 
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
-const db = require('./config/config'); 
+const db = require('./config/config'); // Импортируем db
 
 const app = express();
-console.log(process.env.MYSQL_URL);  
-const port = process.env.PORT || 8080;
-
+const port = process.env.PORT || 8080; // Порт, предоставляемый окружением или 8080 по умолчанию
 
 app.use(cors());
 app.use(bodyParser.json());
