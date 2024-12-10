@@ -11,28 +11,32 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
+app.get('/favicon.ico', (req, res) => res.status(204));
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Backend работает' });
+});
+
 app.get('/test-db', (req, res) => {
   db.query('SELECT NOW()', (err, results) => {
     if (err) {
-      console.error('DB Connection Error:', err);
-      return res.status(500).json({ message: 'Error executing query', error: err });
+      console.error('Ошибка БД:', err);
+      return res.status(500).json({ message: 'Ошибка запроса', error: err });
     }
-    res.json({ message: 'Connection successful', data: results });
+    res.json({ message: 'Подключение успешно', data: results });
   });
 });
 
 app.use('/api', authRoutes);
 
-
-app.get('/', (req, res) => {
-  res.json({ message: 'Backend is running' });
-});
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+  res.status(500).json({ 
+    message: 'Внутренняя ошибка сервера', 
+    error: err.message 
+  });
 });
 
 app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Сервер запущен на порту ${port}`);
 });
