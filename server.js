@@ -1,21 +1,12 @@
-require('dotenv').config(); 
-
 const express = require('express');
-const logger = require('./middleware/logger');  
-const parseJson = require('./middleware/parseJson');  
-const cors = require('cors'); 
-const routes = require('./routes/authRoutes');  
+const cors = require('cors');
+const routes = require('./routes/authRoutes');
+const parseJson = require('./middleware/parseJson'); 
 
 const app = express();
 
-app.use(cors());  
-app.use(express.json());   
-app.use(parseJson);        
-app.use(logger);       
-
-app.get('/', (req, res) => {
-    res.send('Welcome to the API server!');
-});
+app.use(cors());
+app.use(parseJson);  
 
 app.use('/api', routes);
 
