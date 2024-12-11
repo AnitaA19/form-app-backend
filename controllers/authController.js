@@ -1,7 +1,7 @@
-const connection = require('../config/config');
-const { generateSalt, hashPassword } = require('../utils/passwordUtil');
+const connection = require('../config/database');
+const { generateSalt, hashPassword, validatePassword } = require('../utils/passwordUtils');
 
-const registerUser = async (req, res, next) => {
+exports.registerUser = async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
@@ -28,7 +28,7 @@ const registerUser = async (req, res, next) => {
     }
 };
 
-const loginUser = async (req, res, next) => {
+exports.loginUser = async (req, res, next) => {
     const { email, password } = req.body;
 
     try {
