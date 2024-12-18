@@ -1,42 +1,41 @@
 const express = require('express');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const connection = require('../config/config'); 
+const User = require('../models/userModel');
+const { STATUS_CODES } = require('../constants'); 
 const router = express.Router();
 
 router.post('/', (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Email and password are required' });
   }
 
-  connection.query('SELECT * FROM authUser WHERE email = ?', [email], (err, results) => {
+  User.findByEmail(email, (err, results) => {
     if (err) {
-      console.error('Database query error when checking email:', err);  
-      return res.status(500).json({ message: 'Internal server error' });
+      console.error('Database query error when checking email:', err);
+      return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
     }
 
     if (results.length === 0) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid email or password' });
     }
 
     const user = results[0];
 
-    try {
-      const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+    User.comparePassword(password, user.password, (err, isMatch) => {
+      if (err) {
+        console.error('Error comparing passwords:', err);
+        return res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({ message: 'Internal server error' });
+      }
 
-      if (hashedPassword !== user.password) {
-        return res.status(400).json({ message: 'Invalid email or password' });
+      if (!isMatch) {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid email or password' });
       }
 
       const token = jwt.sign({ userId: user.ID, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-      return res.status(200).json({ message: 'Login successful', token, email: user.email });
-    } catch (error) {
-      console.error('Error while hashing password or generating token:', error);  
-      return res.status(500).json({ message: 'Internal server error' });
-    }
+      return res.status(STATUS_CODES.SUCCESS).json({ message: 'Login successful', token, email: user.email });
+    });
   });
 });
 
