@@ -1,17 +1,19 @@
 const db = require("../config/config");  
 
 class Question {
-  constructor(template_id, user_id, name, description, answerType, answers) {
+  constructor(template_id, user_id, name, description, answerType, answers, correct_answer, show_answer = 0) {
     this.template_id = template_id;
     this.user_id = user_id;
     this.name = name;
     this.description = description;
     this.answerType = answerType;
     this.answers = answers;
+    this.correct_answer = correct_answer;  // Add correct_answer here
+    this.show_answer = show_answer;
   }
 
-  static async create(template_id, user_id, name, description, answerType, answers) {
-    const connection = db; 
+  static async create(template_id, user_id, name, description, answerType, answers, correct_answer, show_answer = 0) {
+    const connection = db;
     try {
       if (!['checkbox', 'text'].includes(answerType)) {
         throw new Error("Invalid answer type");
@@ -34,8 +36,8 @@ class Question {
       }
 
       const query = `
-        INSERT INTO questions (template_id, user_id, name, description, answer_type, answers)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO questions (template_id, user_id, name, description, answer_type, answers, correct_answer, show_answer)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const [result] = await connection.promise().query(query, [
         template_id,
@@ -44,6 +46,8 @@ class Question {
         description,
         answerType,
         JSON.stringify(answers),
+        correct_answer,  // Store correct_answer here
+        show_answer,
       ]);
 
       return result;
@@ -52,5 +56,6 @@ class Question {
     }
   }
 }
+
 
 module.exports = Question;
