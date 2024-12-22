@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
   res.send('Welcome to the API server!');
 });
 
-app.use('/api/auth', authRoutes); 
+app.use('/api', authRoutes); 
 app.use('/api/templates', templateRoutes);
 app.use('/api', questionRoutes); 
 

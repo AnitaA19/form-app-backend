@@ -1,4 +1,4 @@
-const db = require('../config/config'); // Import your DB connection
+const db = require('../config/config'); 
 
 class Template {
   constructor(userId, title, description = null, theme, image_url = null, is_public = 0) {
@@ -6,7 +6,7 @@ class Template {
     this.title = title;
     this.description = description;
     this.theme = theme;
-    this.image_url = image_url; // Путь к изображению
+    this.image_url = image_url;
     this.is_public = is_public;
   }
 
