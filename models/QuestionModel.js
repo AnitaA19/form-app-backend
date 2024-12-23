@@ -12,21 +12,19 @@ class Question {
     this.correct_answer = correct_answer;
   }
 
-  static validateCorrectAnswer(answerType, answers, correct_answer) {
-    if (answerType === 'checkbox') {
-      // Ensure correct_answer is an array
-      if (!Array.isArray(correct_answer)) {
+  validateCorrectAnswer() {
+    if (this.answerType === 'checkbox') {
+      if (!Array.isArray(this.correct_answer)) {
         throw new Error("Correct answer must be an array for checkbox type questions");
       }
-
-      const validAnswers = correct_answer.every(answer => 
-        answers.some(a => a.id === answer)
+      const validAnswers = this.correct_answer.every(answer =>
+        this.answers.some(a => a.id === answer)
       );
       if (!validAnswers) {
         throw new Error("All correct answers must exist in the answers array");
       }
-    } else if (answerType === 'text') {
-      if (typeof correct_answer !== 'string') {
+    } else if (this.answerType === 'text') {
+      if (typeof this.correct_answer !== 'string') {
         throw new Error("Correct answer must be a string for text type questions");
       }
     }
@@ -39,7 +37,8 @@ class Question {
         throw new Error("Invalid answer type");
       }
 
-      this.validateCorrectAnswer(answerType, answers, correct_answer);
+      const question = new Question(template_id, user_id, name, description, answerType, show_answer, answers, correct_answer);
+      question.validateCorrectAnswer();
 
       const [templateCheck] = await connection.promise().query(
         `SELECT 1 FROM templates WHERE id = ?`,
@@ -61,7 +60,7 @@ class Question {
         INSERT INTO questions (template_id, user_id, name, description, answer_type, show_answer, answers, correct_answer)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
-      
+
       const serializedAnswers = JSON.stringify(answers);
       const serializedCorrectAnswer = JSON.stringify(correct_answer);
 
