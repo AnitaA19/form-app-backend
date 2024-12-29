@@ -9,6 +9,6 @@ router.get('/questions/user', authenticate, getAllQuestionsByUserController);
 
 router.put('/questions/:question_id', updateQuestionController);
 
-router.delete('/questions/:question_id', authenticate, deleteQuestionController);
+router.delete('/questions/:questionId', authenticate, deleteQuestionController);
 
 module.exports = router;

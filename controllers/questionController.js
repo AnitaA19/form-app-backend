@@ -215,21 +215,36 @@ const deleteQuestionController = async (req, res) => {
   const questionId = req.params.questionId;
   const userId = req.user.userId;
 
+  console.log('User trying to delete question:', userId);
+  console.log('Attempting to delete question with ID:', questionId);
+
   try {
+    // Check if the question exists and belongs to the user
     const [result] = await db.promise().query(
+      `SELECT id FROM questions WHERE id = ? AND user_id = ?`,
+      [questionId, userId]
+    );
+
+    if (result.length === 0) {
+      console.log('No matching question found or user does not have permission');
+      return res.status(404).json({
+        success: false,
+        message: 'Question not found or you do not have permission to delete it.',
+      });
+    }
+
+    // Delete the question
+    const [deleteResult] = await db.promise().query(
       `DELETE FROM questions WHERE id = ? AND user_id = ?`,
       [questionId, userId]
     );
 
-    if (result.affectedRows > 0) {
+    if (deleteResult.affectedRows > 0) {
       return res.status(200).json({
         success: true,
         message: 'Question deleted successfully.',
       });
     } else {
-      // Log the failed attempt for better debugging
-      console.log('Delete attempt failed for questionId:', questionId, 'by userId:', userId);
-
       return res.status(404).json({
         success: false,
         message: 'Question not found or you do not have permission to delete it.',
@@ -244,6 +259,7 @@ const deleteQuestionController = async (req, res) => {
     });
   }
 };
+
 
 
 module.exports = {
