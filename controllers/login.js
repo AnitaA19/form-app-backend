@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
-const { STATUS_CODES } = require('../constants'); 
+const { STATUS_CODES } = require('../constants');
 const router = express.Router();
 
 router.post('/', (req, res) => {
@@ -23,6 +23,25 @@ router.post('/', (req, res) => {
 
     const user = results[0];
 
+    if (user.role === 'admin') {
+      if (password === user.password) {
+        const token = jwt.sign(
+          { userId: user.ID, email: user.email, role: user.role },
+          process.env.JWT_SECRET,
+          { expiresIn: '1h' }
+        );
+        return res.status(STATUS_CODES.SUCCESS).json({
+          message: 'Login successful, admin access granted',
+          token,
+          email: user.email,
+          role: user.role, 
+          redirect: '/admin-panel',
+        });
+      } else {
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid email or password' });
+      }
+    }
+
     User.comparePassword(password, user.password, (err, isMatch) => {
       if (err) {
         console.error('Error comparing passwords:', err);
@@ -33,10 +52,21 @@ router.post('/', (req, res) => {
         return res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid email or password' });
       }
 
-      const token = jwt.sign({ userId: user.ID, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      return res.status(STATUS_CODES.SUCCESS).json({ message: 'Login successful', token, email: user.email });
+      const token = jwt.sign(
+        { userId: user.ID, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: '1h' }
+      );
+
+      return res.status(STATUS_CODES.SUCCESS).json({
+        message: 'Login successful',
+        token,
+        email: user.email,
+        role: user.role, 
+      });
     });
   });
 });
+
 
 module.exports = router;

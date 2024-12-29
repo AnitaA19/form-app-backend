@@ -1,11 +1,13 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path'); // Import the path module
 const logger = require('./middleware/logger'); 
 const parseJson = require('./middleware/parseJson'); 
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes'); 
 const templateRoutes = require('./routes/templateRoute');
 const questionRoutes = require('./routes/questionRoutes'); 
+const userRoutes = require('./routes/userRoute'); 
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.get('/', (req, res) => {
 app.use('/api', authRoutes); 
 app.use('/api/templates', templateRoutes);
 app.use('/api', questionRoutes); 
+app.use('/api', userRoutes);
 
 app.use((req, res) => {
   console.log(`Route not found: ${req.method} ${req.url}`);
