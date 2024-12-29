@@ -227,6 +227,9 @@ const deleteQuestionController = async (req, res) => {
         message: 'Question deleted successfully.',
       });
     } else {
+      // Log the failed attempt for better debugging
+      console.log('Delete attempt failed for questionId:', questionId, 'by userId:', userId);
+
       return res.status(404).json({
         success: false,
         message: 'Question not found or you do not have permission to delete it.',
