@@ -102,6 +102,11 @@ class TemplateController {
         return res.status(400).json({ message: 'Template ID is required' });
       }
 
+      const template = await Template.getById(id);
+      if (!template) {
+        return res.status(404).json({ message: 'Template not found' });
+      }
+
       await Template.delete(id);
 
       res.status(200).json({
