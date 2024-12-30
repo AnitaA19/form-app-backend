@@ -269,15 +269,12 @@ const getAllQuestionsController = async (req, res) => {
         name, 
         description, 
         answer_type, 
-        show_answer, 
-        answers, 
-        correct_answer
+        answers
       FROM questions`
     );
 
     const questionsByAuthors = result.reduce((acc, question) => {
       let parsedAnswers = [];
-      let parsedCorrectAnswer = [];
 
       try {
         if (question.answers) {
@@ -286,19 +283,11 @@ const getAllQuestionsController = async (req, res) => {
       } catch (e) {
         console.error(`Failed to parse answers for question_id ${question.question_id}:`, e.message);
       }
-      try {
-        if (question.correct_answer) {
-          parsedCorrectAnswer = typeof question.correct_answer === 'string' ? JSON.parse(question.correct_answer) : question.correct_answer;
-        }
-      } catch (e) {
-        console.error(`Failed to parse correct_answer for question_id ${question.question_id}:`, e.message);
-      }
 
       const authorQuestions = acc[question.user_id] || [];
       authorQuestions.push({
         ...question,
         answers: parsedAnswers,
-        correct_answer: parsedCorrectAnswer,
       });
       acc[question.user_id] = authorQuestions;
 
@@ -318,8 +307,6 @@ const getAllQuestionsController = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   createQuestionController,
