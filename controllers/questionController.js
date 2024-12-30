@@ -259,11 +259,72 @@ const deleteQuestionController = async (req, res) => {
   }
 };
 
+const getAllQuestionsController = async (req, res) => {
+  try {
+    const [result] = await db.promise().query(
+      `SELECT 
+        id AS question_id, 
+        template_id, 
+        user_id, 
+        name, 
+        description, 
+        answer_type, 
+        show_answer, 
+        answers, 
+        correct_answer
+      FROM questions`
+    );
+
+    const questionsByAuthors = result.reduce((acc, question) => {
+      let parsedAnswers = [];
+      let parsedCorrectAnswer = [];
+
+      try {
+        if (question.answers) {
+          parsedAnswers = typeof question.answers === 'string' ? JSON.parse(question.answers) : question.answers;
+        }
+      } catch (e) {
+        console.error(`Failed to parse answers for question_id ${question.question_id}:`, e.message);
+      }
+      try {
+        if (question.correct_answer) {
+          parsedCorrectAnswer = typeof question.correct_answer === 'string' ? JSON.parse(question.correct_answer) : question.correct_answer;
+        }
+      } catch (e) {
+        console.error(`Failed to parse correct_answer for question_id ${question.question_id}:`, e.message);
+      }
+
+      const authorQuestions = acc[question.user_id] || [];
+      authorQuestions.push({
+        ...question,
+        answers: parsedAnswers,
+        correct_answer: parsedCorrectAnswer,
+      });
+      acc[question.user_id] = authorQuestions;
+
+      return acc;
+    }, {});
+
+    res.status(STATUS_CODES.SUCCESS).json({
+      success: true,
+      questions_by_authors: questionsByAuthors,
+    });
+  } catch (error) {
+    console.error('Error fetching questions by authors:', error);
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      message: "An error occurred while fetching questions by authors",
+      error: error.message,
+    });
+  }
+};
+
 
 
 module.exports = {
   createQuestionController,
   getAllQuestionsByUserController,
   deleteQuestionController,
-  updateQuestionController
+  updateQuestionController,
+  getAllQuestionsController
 };
