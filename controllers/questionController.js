@@ -263,14 +263,16 @@ const getAllQuestionsController = async (req, res) => {
   try {
     const [result] = await db.promise().query(
       `SELECT 
-        id AS question_id, 
-        template_id, 
-        user_id, 
-        name, 
-        description, 
-        answer_type, 
-        answers
-      FROM questions`
+        q.id AS question_id, 
+        q.template_id, 
+        q.user_id, 
+        q.name, 
+        q.description, 
+        q.answer_type, 
+        q.answers,
+        u.email AS user_email
+      FROM questions q
+      JOIN users u ON q.user_id = u.id`
     );
 
     const questionsByAuthors = result.reduce((acc, question) => {
@@ -284,12 +286,12 @@ const getAllQuestionsController = async (req, res) => {
         console.error(`Failed to parse answers for question_id ${question.question_id}:`, e.message);
       }
 
-      const authorQuestions = acc[question.user_id] || [];
+      const authorQuestions = acc[question.user_email] || [];
       authorQuestions.push({
         ...question,
         answers: parsedAnswers,
       });
-      acc[question.user_id] = authorQuestions;
+      acc[question.user_email] = authorQuestions;
 
       return acc;
     }, {});
