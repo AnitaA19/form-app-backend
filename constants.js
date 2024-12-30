@@ -4,8 +4,11 @@ const STATUS_CODES = {
     BAD_REQUEST: 400,
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
-    INTERNAL_SERVER_ERROR: 500
+    INTERNAL_SERVER_ERROR: 500,
+    NOT_FOUND: 404,
   };
+
+  const SIZE_FOR_KEY_GENERATION = 64;
   
-  module.exports = { STATUS_CODES };
+  module.exports = { STATUS_CODES, SIZE_FOR_KEY_GENERATION };
   

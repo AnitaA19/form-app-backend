@@ -1,5 +1,6 @@
 const Question = require('../models/QuestionModel');
 const db = require('../config/config');
+const { STATUS_CODES } = require('../constants');
 
 const createQuestionController = async (req, res) => {
   const { 
@@ -14,7 +15,7 @@ const createQuestionController = async (req, res) => {
 
 
   if (!template_id || !name || !answerType || !Array.isArray(answers)) {
-    return res.status(400).json({ 
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ 
       success: false,
       message: "Missing required fields or invalid answers format" 
     });
@@ -31,7 +32,7 @@ const createQuestionController = async (req, res) => {
     } else if (typeof correct_answer === 'number') {
       stringifiedCorrectAnswer = JSON.stringify([correct_answer]);
     } else {
-      return res.status(400).json({ 
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ 
         success: false,
         message: "Correct answer must be an array of integers or a single integer." 
       });
@@ -71,7 +72,7 @@ const createQuestionController = async (req, res) => {
       ]
     );
 
-    return res.status(201).json({
+    return res.status(STATUS_CODES.CREATED).json({
       success: true,
       message: "Question created successfully",
       template_id,
@@ -79,7 +80,7 @@ const createQuestionController = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating question:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while creating the question",
       error: error.message 
@@ -136,13 +137,13 @@ const getAllQuestionsByUserController = async (req, res) => {
           };
       });
 
-      res.status(200).json({
+      res.status(STATUS_CODES.SUCCESS).json({
           success: true,
           questions: questions,
       });
   } catch (error) {
       console.error('Error fetching questions:', error);
-      res.status(500).json({
+      res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
           success: false,
           message: "An error occurred while fetching questions for the user",
           error: error.message,
@@ -163,7 +164,7 @@ const updateQuestionController = async (req, res) => {
   } = req.body;
 
   if (!name || !answerType) {
-    return res.status(400).json({ 
+    return res.status(STATUS_CODES.BAD_REQUEST).json({ 
       success: false,
       message: "Missing required fields" 
     });
@@ -191,19 +192,19 @@ const updateQuestionController = async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ 
+      return res.status(STATUS_CODES.NOT_FOUND).json({ 
         success: false,
         message: "Question not found" 
       });
     }
 
-    res.status(200).json({
+    res.status(STATUS_CODES.SUCCESS).json({
       success: true,
       message: "Question updated successfully",
     });
   } catch (error) {
     console.error('Error updating question:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while updating the question",
       error: error.message
@@ -219,7 +220,6 @@ const deleteQuestionController = async (req, res) => {
   console.log('Attempting to delete question with ID:', questionId);
 
   try {
-    // Check if the question exists and belongs to the user
     const [result] = await db.promise().query(
       `SELECT id FROM questions WHERE id = ? AND user_id = ?`,
       [questionId, userId]
@@ -227,32 +227,31 @@ const deleteQuestionController = async (req, res) => {
 
     if (result.length === 0) {
       console.log('No matching question found or user does not have permission');
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Question not found or you do not have permission to delete it.',
       });
     }
 
-    // Delete the question
     const [deleteResult] = await db.promise().query(
       `DELETE FROM questions WHERE id = ? AND user_id = ?`,
       [questionId, userId]
     );
 
     if (deleteResult.affectedRows > 0) {
-      return res.status(200).json({
+      return res.status(STATUS_CODES.SUCCESS).json({
         success: true,
         message: 'Question deleted successfully.',
       });
     } else {
-      return res.status(404).json({
+      return res.status(STATUS_CODES.NOT_FOUND).json({
         success: false,
         message: 'Question not found or you do not have permission to delete it.',
       });
     }
   } catch (error) {
     console.error('Error deleting question:', error);
-    res.status(500).json({
+    res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'An error occurred while deleting the question.',
       error: error.message,

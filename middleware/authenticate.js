@@ -1,10 +1,11 @@
 const jwt = require('jsonwebtoken');
+const { STATUS_CODES } = require('../constants');
 
 const authenticate = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {
-    return res.status(401).json({ message: 'Access Denied' });
+    return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: 'Access Denied' });
   }
 
   try {
@@ -12,7 +13,7 @@ const authenticate = (req, res, next) => {
     req.user = decoded; 
     next();
   } catch (error) {
-    res.status(400).json({ message: 'Invalid Token' });
+    res.status(STATUS_CODES.BAD_REQUEST).json({ message: 'Invalid Token' });
   }
 };
 

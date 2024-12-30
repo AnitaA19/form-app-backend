@@ -1,5 +1,7 @@
 // const express = require('express');
 
+const { STATUS_CODES } = require("../constants");
+
 // const parseJson = express.json();
 
 // module.exports = parseJson;
@@ -9,7 +11,7 @@ const parseJson = (req, res, next) => {
     try {
       req.body = JSON.parse(req.body);  
     } catch (error) {
-      return res.status(400).json({ success: false, message: 'Invalid JSON format' });
+      return res.status(STATUS_CODES.BAD_REQUEST).json({ success: false, message: 'Invalid JSON format' });
     }
   }
   next();
