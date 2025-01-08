@@ -28,9 +28,7 @@ class Question {
         throw new Error("All correct answers must be valid indices in the answers array");
       }
     } else if (this.answerType === 'text') {
-      if (typeof this.correct_answer !== 'string') {
-        throw new Error("Correct answer must be a string for text type questions");
-      }
+      return;
     }
   }
   

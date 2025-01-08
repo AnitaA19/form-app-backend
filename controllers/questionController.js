@@ -27,13 +27,6 @@ const createQuestionController = async (req, res) => {
     });
   }
 
-  if (answerType === 'text' && typeof correct_answer !== 'string') {
-    return res.status(STATUS_CODES.BAD_REQUEST).json({
-      success: false,
-      message: "Correct answer must be a string for text type questions"
-    });
-  }
-
   if (answerType === 'checkbox') {
     const isValidIndices = correct_answer.every((index) => 
       Number.isInteger(index) && index >= 0 && index < answers.length
