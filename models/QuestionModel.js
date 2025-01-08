@@ -80,6 +80,102 @@ class Question {
       throw new Error(error.message || "Failed to create question");
     }
   }
+
+  static async findAllByUserId(user_id) {
+    const connection = db;
+    try {
+      const [result] = await connection.promise().query(
+        `SELECT 
+          id AS question_id, 
+          template_id, 
+          name, 
+          description, 
+          answer_type, 
+          show_answer, 
+          answers, 
+          correct_answer
+        FROM questions
+        WHERE user_id = ?`,
+        [user_id]
+      );
+
+      return result.map(question => {
+        let parsedAnswers = [];
+        let parsedCorrectAnswer = [];
+
+        try {
+          if (question.answers) {
+            parsedAnswers = typeof question.answers === 'string' ? JSON.parse(question.answers) : question.answers;
+          }
+        } catch (e) {
+          console.error(`Failed to parse answers for question_id ${question.question_id}:`, e.message);
+        }
+        try {
+          if (question.correct_answer) {
+            parsedCorrectAnswer = typeof question.correct_answer === 'string' ? JSON.parse(question.correct_answer) : question.correct_answer;
+          }
+        } catch (e) {
+          console.error(`Failed to parse correct_answer for question_id ${question.question_id}:`, e.message);
+        }
+
+        return {
+          ...question,
+          answers: parsedAnswers,
+          correct_answer: parsedCorrectAnswer,
+        };
+      });
+    } catch (error) {
+      throw new Error(error.message || "Failed to fetch questions");
+    }
+  }
+
+  static async update(question_id, name, description, answerType, show_answer, answers, correct_answer) {
+    const connection = db;
+    try {
+      const query = `
+        UPDATE questions
+        SET name = ?, 
+            description = ?, 
+            answer_type = ?, 
+            show_answer = ?, 
+            answers = ?, 
+            correct_answer = ?
+        WHERE id = ?
+      `;
+  
+      const serializedAnswers = answers.length > 0 ? JSON.stringify(answers) : '[]';
+      const serializedCorrectAnswer = correct_answer.length > 0 ? JSON.stringify(correct_answer) : '[]';
+  
+      const [result] = await connection.promise().query(query, [
+        name,
+        description,
+        answerType,
+        show_answer || 0,
+        serializedAnswers,
+        serializedCorrectAnswer,
+        question_id
+      ]);
+  
+      return result;
+    } catch (error) {
+      throw new Error(error.message || "Failed to update question");
+    }
+  }
+  
+
+  static async delete(question_id, user_id) {
+    const connection = db;
+    try {
+      const [result] = await connection.promise().query(
+        `DELETE FROM questions WHERE id = ? AND user_id = ?`,
+        [question_id, user_id]
+      );
+
+      return result;
+    } catch (error) {
+      throw new Error(error.message || "Failed to delete question");
+    }
+  }
 }
 
 module.exports = Question;
