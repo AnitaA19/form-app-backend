@@ -147,7 +147,7 @@ const getAllQuestionsController = async (req, res) => {
         q.answers,
         u.email AS user_email
       FROM questions q
-      JOIN users u ON q.user_id = u.id`
+      JOIN authUser u ON q.user_id = u.id`
     );
 
     const questionsByAuthors = result.reduce((acc, question) => {
