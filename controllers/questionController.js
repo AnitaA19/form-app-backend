@@ -1,6 +1,6 @@
+const { STATUS_CODES } = require('../constants');
 const Question = require('../models/QuestionModel');
 const db = require('../config/config');
-const { STATUS_CODES } = require('../constants');
 
 const createQuestionController = async (req, res) => {
   const { 
@@ -8,7 +8,7 @@ const createQuestionController = async (req, res) => {
     name, 
     description, 
     answerType, 
-    show_answer, 
+    show_answer = 0, 
     answers, 
     correct_answer 
   } = req.body;
@@ -20,10 +20,45 @@ const createQuestionController = async (req, res) => {
     });
   }
 
+  if (answerType === 'checkbox' && !Array.isArray(correct_answer)) {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({
+      success: false,
+      message: "Correct answer must be an array for checkbox type questions"
+    });
+  }
+
+  if (answerType === 'text' && typeof correct_answer !== 'string') {
+    return res.status(STATUS_CODES.BAD_REQUEST).json({
+      success: false,
+      message: "Correct answer must be a string for text type questions"
+    });
+  }
+
+  if (answerType === 'checkbox') {
+    const isValidIndices = correct_answer.every((index) => 
+      Number.isInteger(index) && index >= 0 && index < answers.length
+    );
+    if (!isValidIndices) {
+      return res.status(STATUS_CODES.BAD_REQUEST).json({
+        success: false,
+        message: "All correct answers must be valid indices in the answers array (0-based indexing)"
+      });
+    }
+  }
+
   const user_id = req.user.userId;
 
   try {
-    const result = await Question.create(template_id, user_id, name, description, answerType, show_answer, answers, correct_answer);
+    const result = await Question.create(
+      template_id, 
+      user_id, 
+      name, 
+      description, 
+      answerType, 
+      show_answer, 
+      answers, 
+      correct_answer
+    );
 
     return res.status(STATUS_CODES.CREATED).json({
       success: true,
@@ -36,7 +71,7 @@ const createQuestionController = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while creating the question",
-      error: error.message 
+      error: error.message || "Unknown error"
     });
   }
 };
@@ -56,7 +91,7 @@ const getAllQuestionsByUserController = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while fetching questions for the user",
-      error: error.message,
+      error: error.message || "Unknown error",
     });
   }
 };
@@ -67,15 +102,15 @@ const updateQuestionController = async (req, res) => {
     name, 
     description, 
     answerType, 
-    show_answer, 
+    show_answer = 0, 
     answers, 
     correct_answer 
   } = req.body;
 
-  if (!name || !answerType) {
+  if (!name || !answerType || !Array.isArray(answers)) {
     return res.status(STATUS_CODES.BAD_REQUEST).json({ 
       success: false,
-      message: "Missing required fields" 
+      message: "Missing required fields or invalid answers format" 
     });
   }
 
@@ -85,7 +120,7 @@ const updateQuestionController = async (req, res) => {
     if (result.affectedRows === 0) {
       return res.status(STATUS_CODES.NOT_FOUND).json({ 
         success: false,
-        message: "Question not found" 
+        message: "Question not found or update failed" 
       });
     }
 
@@ -98,7 +133,7 @@ const updateQuestionController = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while updating the question",
-      error: error.message
+      error: error.message || "Unknown error"
     });
   }
 };
@@ -106,9 +141,6 @@ const updateQuestionController = async (req, res) => {
 const deleteQuestionController = async (req, res) => {
   const questionId = req.params.questionId;
   const userId = req.user.userId;
-
-  console.log('User trying to delete question:', userId);
-  console.log('Attempting to delete question with ID:', questionId);
 
   try {
     const result = await Question.delete(questionId, userId);
@@ -129,7 +161,7 @@ const deleteQuestionController = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: 'An error occurred while deleting the question.',
-      error: error.message,
+      error: error.message || "Unknown error",
     });
   }
 };
@@ -180,7 +212,7 @@ const getAllQuestionsController = async (req, res) => {
     res.status(STATUS_CODES.INTERNAL_SERVER_ERROR).json({
       success: false,
       message: "An error occurred while fetching questions by authors",
-      error: error.message,
+      error: error.message || "Unknown error",
     });
   }
 };

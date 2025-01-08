@@ -17,11 +17,15 @@ class Question {
       if (!Array.isArray(this.correct_answer)) {
         throw new Error("Correct answer must be an array for checkbox type questions");
       }
-      const validAnswers = this.correct_answer.every(answer =>
-        this.answers.some(a => a.id === answer)
+  
+      const normalizedAnswers = this.answers.map(a => a.trim().toLowerCase());
+  
+      const validAnswers = this.correct_answer.every(index => 
+        index >= 0 && index < this.answers.length
       );
+  
       if (!validAnswers) {
-        throw new Error("All correct answers must exist in the answers array");
+        throw new Error("All correct answers must be valid indices in the answers array");
       }
     } else if (this.answerType === 'text') {
       if (typeof this.correct_answer !== 'string') {
@@ -29,6 +33,7 @@ class Question {
       }
     }
   }
+  
 
   static async create(template_id, user_id, name, description, answerType, show_answer = 0, answers, correct_answer) {
     const connection = db;
@@ -61,8 +66,10 @@ class Question {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
 
-      const serializedAnswers = JSON.stringify(answers);
-      const serializedCorrectAnswer = JSON.stringify(correct_answer);
+      const serializedAnswers = JSON.stringify(answers.map(a => a.trim()));
+      const serializedCorrectAnswer = answerType === 'checkbox' 
+        ? JSON.stringify(correct_answer)
+        : JSON.stringify(correct_answer);
 
       const [result] = await connection.promise().query(query, [
         template_id,

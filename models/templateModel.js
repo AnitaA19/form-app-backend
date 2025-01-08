@@ -47,7 +47,7 @@ class Template {
         } else if (results.length > 0) {
           resolve(results[0]);
         } else {
-          resolve(null); // Если запись не найдена
+          resolve(null); 
         }
       });
     });

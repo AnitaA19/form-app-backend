@@ -86,7 +86,6 @@ class TemplateController {
       await Template.update(id, templateData);
 
       res.status(STATUS_CODES.SUCCESS).json({
-        message: 'Template updated successfully',
         template_id: id,
       });
     } catch (err) {
