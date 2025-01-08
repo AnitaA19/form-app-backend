@@ -39,10 +39,12 @@ class Question {
       if (!['checkbox', 'text'].includes(answerType)) {
         throw new Error("Invalid answer type");
       }
-
+  
+      console.log("Incoming correct_answer:", correct_answer);
+  
       const question = new Question(template_id, user_id, name, description, answerType, show_answer, answers, correct_answer);
       question.validateCorrectAnswer();
-
+  
       const [templateCheck] = await connection.promise().query(
         `SELECT 1 FROM templates WHERE id = ?`,
         [template_id]
@@ -50,7 +52,7 @@ class Question {
       if (templateCheck.length === 0) {
         throw new Error("Template not found");
       }
-
+  
       const [userCheck] = await connection.promise().query(
         `SELECT 1 FROM authUser WHERE id = ?`,
         [user_id]
@@ -58,17 +60,19 @@ class Question {
       if (userCheck.length === 0) {
         throw new Error("User not found");
       }
-
+  
+      const serializedAnswers = JSON.stringify(answers.map(a => a.trim()));
+      const serializedCorrectAnswer = answerType === 'checkbox'
+        ? JSON.stringify(correct_answer.map(index => parseInt(index)))
+        : JSON.stringify(correct_answer);
+  
+      console.log("Serialized correct_answer:", serializedCorrectAnswer);
+  
       const query = `
         INSERT INTO questions (template_id, user_id, name, description, answer_type, show_answer, answers, correct_answer)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
-
-      const serializedAnswers = JSON.stringify(answers.map(a => a.trim()));
-      const serializedCorrectAnswer = answerType === 'checkbox' 
-        ? JSON.stringify(correct_answer)
-        : JSON.stringify(correct_answer);
-
+  
       const [result] = await connection.promise().query(query, [
         template_id,
         user_id,
@@ -79,12 +83,16 @@ class Question {
         serializedAnswers,
         serializedCorrectAnswer
       ]);
-
+  
+      console.log("Saved question ID:", result.insertId);
+  
       return result;
     } catch (error) {
       throw new Error(error.message || "Failed to create question");
     }
   }
+  
+  
 
   static async findAllByUserId(user_id) {
     const connection = db;
@@ -103,11 +111,11 @@ class Question {
         WHERE user_id = ?`,
         [user_id]
       );
-
+  
       return result.map(question => {
         let parsedAnswers = [];
         let parsedCorrectAnswer = [];
-
+  
         try {
           if (question.answers) {
             parsedAnswers = typeof question.answers === 'string' ? JSON.parse(question.answers) : question.answers;
@@ -118,11 +126,14 @@ class Question {
         try {
           if (question.correct_answer) {
             parsedCorrectAnswer = typeof question.correct_answer === 'string' ? JSON.parse(question.correct_answer) : question.correct_answer;
+            if (Array.isArray(parsedCorrectAnswer)) {
+              parsedCorrectAnswer = parsedCorrectAnswer.map(index => parseInt(index)); а
+            }
           }
         } catch (e) {
           console.error(`Failed to parse correct_answer for question_id ${question.question_id}:`, e.message);
         }
-
+  
         return {
           ...question,
           answers: parsedAnswers,
@@ -133,6 +144,8 @@ class Question {
       throw new Error(error.message || "Failed to fetch questions");
     }
   }
+  
+  
 
   static async update(question_id, name, description, answerType, show_answer, answers, correct_answer) {
     const connection = db;
